@@ -1,13 +1,14 @@
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { useWebhooks } from './hooks/useWebhooks';
-import { useAuth } from '../auth/hooks/useAuth';
+import { useWebhooks } from '../../hooks/useWebhooks';
+import { useAuth } from '../../../auth/hooks/useAuth';
 
 import './WebhooksPage.css';
 
 export default function WebhooksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const rawPage = Number(searchParams.get('page') ?? '1');
   const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1;
@@ -98,6 +99,7 @@ export default function WebhooksPage() {
                     <th scope="col">Endpoint URL</th>
                     <th scope="col">Status</th>
                     <th scope="col">Created</th>
+                    <th scope="col">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -115,6 +117,14 @@ export default function WebhooksPage() {
                         </span>
                       </td>
                       <td>{new Date(webhook.created_at).toLocaleDateString()}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/webhooks/${webhook.id}/edit`)}
+                        >
+                          Edit
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
