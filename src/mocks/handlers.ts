@@ -27,10 +27,68 @@ interface UpdateBody {
 }
 
 // Mock-server state. Nothing is stored in browser storage.
+interface MockSessionState {
+  activeFingerprint: string | null;
+  sessionExpiresAt: number;
+  sessionIssued: boolean;
+}
+
+const MOCK_SESSION_STORAGE_KEY = 'webhook-manager:mock-session';
+
+const EMPTY_SESSION: MockSessionState = {
+  activeFingerprint: null,
+  sessionExpiresAt: 0,
+  sessionIssued: false,
+};
+
+function isMockSessionState(value: unknown): value is MockSessionState {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const session = value as Record<string, unknown>;
+
+  return (
+    (session.activeFingerprint === null || typeof session.activeFingerprint === 'string') &&
+    typeof session.sessionExpiresAt === 'number' &&
+    typeof session.sessionIssued === 'boolean'
+  );
+}
+
+function readMockSession(): MockSessionState {
+  try {
+    const raw = sessionStorage.getItem(MOCK_SESSION_STORAGE_KEY);
+
+    if (!raw) {
+      return EMPTY_SESSION;
+    }
+
+    const parsed: unknown = JSON.parse(raw);
+
+    return isMockSessionState(parsed) ? parsed : EMPTY_SESSION;
+  } catch {
+    return EMPTY_SESSION;
+  }
+}
+
 let deviceSessionToken: string | null = null;
-let activeFingerprint: string | null = null;
-let sessionExpiresAt = 0;
-let sessionIssued = false;
+
+const initialSession = readMockSession();
+
+let activeFingerprint = initialSession.activeFingerprint;
+let sessionExpiresAt = initialSession.sessionExpiresAt;
+let sessionIssued = initialSession.sessionIssued;
+
+function persistMockSession(): void {
+  sessionStorage.setItem(
+    MOCK_SESSION_STORAGE_KEY,
+    JSON.stringify({
+      activeFingerprint,
+      sessionExpiresAt,
+      sessionIssued,
+    } satisfies MockSessionState),
+  );
+}
 
 function apiError(
   status: number,
@@ -134,6 +192,8 @@ export const handlers = [
     sessionIssued = false;
     sessionExpiresAt = 0;
 
+    persistMockSession();
+
     return HttpResponse.json({
       device_session_token: deviceSessionToken,
     });
@@ -161,6 +221,8 @@ export const handlers = [
     sessionIssued = true;
     sessionExpiresAt = Date.now() + SESSION_DURATION_MS;
 
+    persistMockSession();
+
     return new HttpResponse(null, { status: 200 });
   }),
 
@@ -180,6 +242,8 @@ export const handlers = [
 
     sessionExpiresAt = Date.now() + SESSION_DURATION_MS;
 
+    persistMockSession();
+
     return new HttpResponse(null, { status: 200 });
   }),
 
@@ -196,6 +260,8 @@ export const handlers = [
       sessionExpiresAt = 0;
       activeFingerprint = null;
       deviceSessionToken = null;
+
+      persistMockSession();
     }
 
     return new HttpResponse(null, { status: 204 });
