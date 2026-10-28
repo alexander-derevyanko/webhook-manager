@@ -24,6 +24,7 @@ interface FingerprintBody {
 interface UpdateBody {
   name?: string;
   url?: string;
+  active?: boolean;
 }
 
 // Mock-server state. Nothing is stored in browser storage.
@@ -364,6 +365,7 @@ export const handlers = [
       ...webhook,
       name: body.name!.trim(),
       url: body.url!,
+      active: body.active!,
     };
 
     const index = mockWebhooks.findIndex((item) => item.id === updated.id);

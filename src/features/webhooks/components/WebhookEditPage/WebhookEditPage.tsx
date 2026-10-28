@@ -12,14 +12,18 @@ function WebhookEditForm({ webhook }: WebhookEditFormProps) {
   const {
     name,
     url,
+    status,
     fieldErrors,
     formError,
     isPending,
     handleNameChange,
     handleUrlChange,
+    handleStatusChange,
     handleSubmit,
     cancel,
   } = useWebhookEditForm(webhook);
+
+  console.log('status', status);
 
   return (
     <main>
@@ -59,6 +63,16 @@ function WebhookEditForm({ webhook }: WebhookEditFormProps) {
               {fieldErrors.url}
             </p>
           )}
+        </div>
+
+        <div>
+          <label htmlFor="webhook-status">Status</label>
+          <input
+            id="webhook-status"
+            type="checkbox"
+            checked={status}
+            onChange={(event) => handleStatusChange(event.target.checked)}
+          />
         </div>
 
         {formError && <p role="alert">{formError}</p>}

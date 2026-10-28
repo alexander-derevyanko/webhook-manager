@@ -6,7 +6,7 @@ import { HttpError } from '../../../shared/api/httpClient';
 import type { Webhook, WebhookUpdateInput } from '../../../shared/api/types';
 import { updateWebhook } from '../api/webhooksApi';
 
-type FieldName = 'name' | 'url';
+type FieldName = 'name' | 'url' | 'active';
 type FieldErrors = Partial<Record<FieldName, string>>;
 
 interface ApiErrorResponse {
@@ -35,6 +35,7 @@ export function useWebhookEditForm(webhook: Webhook) {
 
   const [name, setName] = useState(webhook.name);
   const [url, setUrl] = useState(webhook.url);
+  const [status, setStatus] = useState(webhook.active);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState('');
 
@@ -85,6 +86,12 @@ export function useWebhookEditForm(webhook: Webhook) {
     clearFieldError('url');
   }
 
+  function handleStatusChange(value: boolean) {
+    console.log('hanlde', value);
+    setStatus(value);
+    clearFieldError('active');
+  }
+
   function validate(): WebhookUpdateInput | null {
     const normalizedName = name.trim();
     const normalizedUrl = url.trim();
@@ -114,6 +121,7 @@ export function useWebhookEditForm(webhook: Webhook) {
     return {
       name: normalizedName,
       url: normalizedUrl,
+      active: status,
     };
   }
 
@@ -129,6 +137,8 @@ export function useWebhookEditForm(webhook: Webhook) {
       return;
     }
 
+    console.log(input);
+
     mutation.mutate(input);
   }
 
@@ -139,11 +149,13 @@ export function useWebhookEditForm(webhook: Webhook) {
   return {
     name,
     url,
+    status,
     fieldErrors,
     formError,
     isPending: mutation.isPending,
     handleNameChange,
     handleUrlChange,
+    handleStatusChange,
     handleSubmit,
     cancel,
   };

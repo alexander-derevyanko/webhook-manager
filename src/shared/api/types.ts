@@ -23,6 +23,7 @@ export interface WebhookList {
 export interface WebhookUpdateInput {
   name: string;
   url: string;
+  active: boolean;
 }
 
 export interface User {
